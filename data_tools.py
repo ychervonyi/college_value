@@ -144,7 +144,7 @@ def process_data(features_all, features_model, path):
         # print("After. Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
 
     X = np.asarray(X).transpose()
-    return X, Y, feature_names
+    return df, X, Y, feature_names
 
 
 if __name__ == '__main__':
