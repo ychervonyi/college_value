@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# But not these files
+!.gitignore
+!*.py
+!requirements.txt
+
+# ...even if they are in subdirectories
+!*/
