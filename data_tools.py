@@ -112,6 +112,41 @@ def get_data(features, path):
     return df_year
 
 
+def process_data(features_all, features_model, path):
+    # Merge data over multiple years
+    print("Reading data...")
+    dataset = get_data(features_all, path=path)
+
+    dfs = []
+    for key, value in dataset.items():
+        dfs.append(value)
+    df = pandas.concat(dfs)
+
+    Y = df['EARNINGS'].values.reshape((-1, 1))
+
+    X = []
+    feature_names = []
+    for feature in features_model:
+        # Normalize only floats
+        if feature.datatype != 'float64':
+            continue
+        # Normalize - min max normalization
+        print("Normalizing...")
+        feature_name = feature.name
+        feature_names.append(feature_name)
+        col = df[feature_name].values
+        col_max, col_min = np.amax(col), np.amin(col)
+        print("Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
+        X.append((col - col_min) / (col_max - col_min))
+
+        # col = data[:, c]
+        # col_max, col_min = np.amax(col), np.amin(col)
+        # print("After. Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
+
+    X = np.asarray(X).transpose()
+    return X, Y, feature_names
+
+
 if __name__ == '__main__':
     earnings_features = [Feature(name='MN_EARN_WNE_MALE1_P6'),
                          Feature(name='COUNT_WNE_MALE1_P6'),
