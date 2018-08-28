@@ -25,6 +25,7 @@ Number of examples: 8015
 'SATVRMID', # Midpoint of SAT scores at the institution (critical reading)
 'SATMTMID' # Midpoint of SAT scores at the institution (math)
 ```
+![alt text](earnings_vs_sat.png)
 
 Top ten colleges in our ranking are:
 ```
