@@ -12,6 +12,8 @@ To do so we build a simple linear regression model predicting earnings based on 
 This allows us to generate a very simple "normalized" college ranking via dividing an actual earnings 
 by a predicted via linear regression earnings based on SAT.
 
+Another thing we can do is to answer the following question: what college features contribute to student earnings the most after factoring out SAT? In other words, we can can build another model predicting the normalized earnings based on college features, we call this "college model".
+
 # Usage
 
 Download and unzip dataset:
