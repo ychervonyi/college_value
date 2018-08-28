@@ -25,55 +25,11 @@ Number of examples: 6536
 """
 
 
-from model import Model
+from model_tools import train_model, compute_college_scores
 from data_tools import Feature, process_data, get_data
-from sklearn.metrics import r2_score
-from sklearn.model_selection import train_test_split
 import numpy as np
 import csv
 import argparse
-
-
-def compute_college_scores(model_type, x, y):
-    # Load student model
-    print("Loading model...")
-    student_model = Model(model_type=model_type, model_name='student')
-    student_model.load()
-
-    assert student_model is not None, "Can't load a model"
-
-    # Actual earnings
-    y_raw = y
-
-    # Predicted earnings
-    y_predicted = student_model.predict(x)
-
-    # College score
-    college_score = np.divide(y_raw, y_predicted)
-    return college_score
-
-
-def train_model(x, y, feature_names, model_name, batch=16, n_epochs=300,
-                learning_rate=0.1, model_type='sklearn', save=False):
-    # Make test and train set
-    train_X, test_X, train_y, test_y = train_test_split(x, y, train_size=0.7, random_state=0)
-
-    params = {'batch': batch, 'epochs': n_epochs, 'learning_rate': learning_rate}
-    print("Training %s model..." % model_name)
-    model = Model(model_type=model_type, model_name=model_name, input_shape=train_X.shape[1], params=params)
-    model.create()
-    model.train(train_X, train_y, test_X, test_y)
-    if save:
-        model.save()
-
-    predictions = model.predict(test_X)
-    r_squared = r2_score(test_y, predictions)
-
-    model.print()
-
-    print("R squared: %.4f" % r_squared)
-    print("Features: %s" % feature_names)
-    print("Number of examples: %d" % len(y))
 
 
 def train_student_model(features_all, features_model, model_name, path, batch=16, n_epochs=300,
