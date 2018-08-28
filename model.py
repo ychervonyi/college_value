@@ -105,14 +105,13 @@ class Model(object):
             self._model.save_weights("%s.h5" % self._model_name)
         elif self._type == 'sklearn':
             joblib.dump(self._model, '%s.pkl' % self._model_name)
-        print("Saved model to disk")
+        print("Model saved to %s" % self._model_name)
 
     def predict(self, x):
         return self._model.predict(x)
 
     def print(self):
         print("============================================")
-        print("Model")
         if self._type == 'keras':
             print("Model weights: %s" % self._model.get_weights())
             print(self._model.summary())

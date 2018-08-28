@@ -11,6 +11,7 @@ class Feature(object):
         self._datatype = datatype
         self._onehot = onehot
         self._replace_with = replace_with
+        self._onehot_len = 0
 
     @property
     def name(self):
@@ -25,8 +26,15 @@ class Feature(object):
         return self._onehot
 
     @property
+    def onehot_len(self):
+        return self._onehot_len
+
+    @property
     def replace_with(self):
         return self._replace_with
+
+    def set_onehot_len(self, onehot_len):
+        self._onehot_len = onehot_len
 
 
 def compute_average_earnings(dataframe):
@@ -47,11 +55,11 @@ def compute_average_earnings(dataframe):
     return average_earnings
 
 
-def df_feature_into_onehot(df, feature_name):
-    if feature_name not in df:
+def df_feature_into_onehot(df, feature):
+    if feature.name not in df:
         return df, None
     # Get index of the feature
-    one_hot_index = df.columns.get_loc(feature_name)
+    one_hot_index = df.columns.get_loc(feature.name)
     # Split dataframe into 3
     dfs = np.split(df, [one_hot_index, one_hot_index + 1], axis=1)
     # Transform feature into str type
@@ -61,9 +69,10 @@ def df_feature_into_onehot(df, feature_name):
     n_columns = len(f_onehot.columns)
     one_hot_columns = []
     for i in range(n_columns):
-        one_hot_columns.append('%s_%s' % (feature_name, i))
+        one_hot_columns.append('%s_%s' % (feature.name, i))
     f_onehot.columns = one_hot_columns
-    return pandas.concat([dfs[0], f_onehot, dfs[2]], axis=1), len(f_onehot.columns)
+    feature.set_onehot_len(len(f_onehot.columns))
+    return pandas.concat([dfs[0], f_onehot, dfs[2]], axis=1)#, len(f_onehot.columns)
 
 
 def get_data(features, path):
@@ -101,21 +110,24 @@ def get_data(features, path):
 
         df = df.assign(EARNINGS=compute_average_earnings(df))
 
+        if df.empty:
+            continue
+
         # Encode into one hots
         for feature in features:
             if feature.onehot:
-                df = df_feature_into_onehot(df, feature.name)
+                df = df_feature_into_onehot(df, feature)
 
         # Skip years with no data
-        if df.values.size > 0:
+        if not df.empty:
             df_year[year] = df
     return df_year
 
 
-def process_data(features_all, features_model, path):
-    # Merge data over multiple years
-    print("Reading data...")
-    dataset = get_data(features_all, path=path)
+def process_data(dataset, features_model):
+    # # Merge data over multiple years
+    # print("Reading data...")
+    # dataset = get_data(features_all, path=path)
 
     dfs = []
     for key, value in dataset.items():
@@ -132,12 +144,21 @@ def process_data(features_all, features_model, path):
             continue
         # Normalize - min max normalization
         print("Normalizing...")
-        feature_name = feature.name
-        feature_names.append(feature_name)
-        col = df[feature_name].values
-        col_max, col_min = np.amax(col), np.amin(col)
-        print("Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
-        X.append((col - col_min) / (col_max - col_min))
+        if feature.onehot:
+            for i in range(feature.onehot_len):
+                feature_name = '%s_%s' % (feature.name, i)
+                feature_names.append(feature_name)
+                col = df[feature_name].values
+                col_max, col_min = np.amax(col), np.amin(col)
+                print("Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
+                X.append((col - col_min) / (col_max - col_min))
+        else:
+            feature_name = feature.name
+            feature_names.append(feature_name)
+            col = df[feature_name].values
+            col_max, col_min = np.amax(col), np.amin(col)
+            print("Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
+            X.append((col - col_min) / (col_max - col_min))
 
         # col = data[:, c]
         # col_max, col_min = np.amax(col), np.amin(col)
