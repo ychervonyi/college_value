@@ -16,8 +16,7 @@ by a predicted via linear regression earnings based on SAT.
 
 Download and unzip dataset:
 ```
-wget https://ed-public-download.app.cloud.gov/downloads/CollegeScorecard_Raw_Data.zip
-unzip CollegeScorecard_Raw_Data
+wget https://ed-public-download.app.cloud.gov/downloads/CollegeScorecard_Raw_Data.zip; unzip CollegeScorecard_Raw_Data
 ```
 Trian a student model:
 ```
