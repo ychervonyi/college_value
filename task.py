@@ -55,9 +55,6 @@ def compute_college_scores(model_type, x, y):
 
 def train_model(x, y, feature_names, model_name, batch=16, n_epochs=300,
                 learning_rate=0.1, model_type='sklearn', save=False):
-    # x, y, feature_names = process_data(features_all=features_all,
-    #                                    features_model=features_model,
-    #                                    path=path)
     # Make test and train set
     train_X, test_X, train_y, test_y = train_test_split(x, y, train_size=0.7, random_state=0)
 
@@ -149,32 +146,40 @@ def train_college_model(features_all, features_student, features_model, model_na
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--task', required=True)
+    parser.add_argument('--task', required=True, choices=['student', 'scores', 'college'])
     args = parser.parse_args()
 
+    # Features to compute earnings
     features_earnings = [Feature(name='MN_EARN_WNE_MALE1_P6'),
                          Feature(name='COUNT_WNE_MALE1_P6'),
                          Feature(name='MN_EARN_WNE_MALE0_P6'),
                          Feature(name='COUNT_WNE_MALE0_P6')]
 
+    # Features of students
     features_student = [Feature(name='SAT_AVG_ALL'),
                         Feature(name='SATVRMID'),
                         Feature(name='SATMTMID')]
 
+    # Features of colleges, at this point we only need names
     features_college = [Feature(name='INSTNM', datatype='str', replace_with='')]
 
     features_all = features_earnings + features_student + features_earnings
 
-    if args.task == 'student':
+    task = args.task
+
+    if task == 'student':
+        # Train student model
         train_student_model(features_all, features_student,
                             model_name='student',
                             model_type='sklearn',
                             path='/CollegeScorecard_Raw_Data/*.csv',
                             save=True)
-    elif args.task == 'scores':
+    elif task == 'scores':
+        # Generating scores with student model
         generate_ranking(features_all, features_student, model_type='sklearn',
                          path='/CollegeScorecard_Raw_Data/*.csv')
-    elif args.task == 'college':
+    elif task == 'college':
+        # Train college model
         features_college = [
             Feature(name='ADM_RATE_ALL'),
             Feature(name='AVGFACSAL',),
@@ -190,5 +195,3 @@ if __name__ == '__main__':
                             model_type='sklearn',
                             path='/CollegeScorecard_Raw_Data/*.csv',
                             save=False)
-    else:
-        print("No task is specified...")
