@@ -119,7 +119,7 @@ if __name__ == '__main__':
     # Features of colleges, at this point we only need names
     features_college = [Feature(name='INSTNM', datatype='str', replace_with='')]
 
-    features_all = features_earnings + features_student + features_earnings
+    features_all = features_earnings + features_student + features_college
 
     task = args.task
 
