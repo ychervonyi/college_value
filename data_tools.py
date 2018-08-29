@@ -124,7 +124,7 @@ def get_data(features, path):
     return df_year
 
 
-def process_data(dataset, features_model):
+def process_data(dataset, features_model, normalize=True):
     # # Merge data over multiple years
     # print("Reading data...")
     # dataset = get_data(features_all, path=path)
@@ -151,14 +151,20 @@ def process_data(dataset, features_model):
                 col = df[feature_name].values
                 col_max, col_min = np.amax(col), np.amin(col)
                 print("Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
-                X.append((col - col_min) / (col_max - col_min))
+                if normalize:
+                    X.append((col - col_min) / (col_max - col_min))
+                else:
+                    X.append(col)
         else:
             feature_name = feature.name
             feature_names.append(feature_name)
             col = df[feature_name].values
             col_max, col_min = np.amax(col), np.amin(col)
             print("Feature: %s, max: %.4f, min: %.4f" % (feature_name, col_max, col_min))
-            X.append((col - col_min) / (col_max - col_min))
+            if normalize:
+                X.append((col - col_min) / (col_max - col_min))
+            else:
+                X.append(col)
 
         # col = data[:, c]
         # col_max, col_min = np.amax(col), np.amin(col)

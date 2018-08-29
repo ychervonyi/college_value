@@ -32,26 +32,28 @@ import csv
 import argparse
 
 
-def train_student_model(features_all, features_model, model_name, path, batch=16, n_epochs=300,
-                learning_rate=0.1, model_type='sklearn', save=False):
+def train_student_model(features_all, features_model, model_name, path, batch=50, n_epochs=300,
+                learning_rate=1.0, model_type='sklearn', save=False, normalize=True):
     # Merge data over multiple years
     print("Reading data...")
     dataset = get_data(features_all, path=path)
 
     df, x, y, feature_names = process_data(dataset=dataset,
-                                       features_model=features_model)
+                                           features_model=features_model,
+                                           normalize=normalize)
 
     train_model(x=x, y=y, model_name=model_name, feature_names=feature_names, batch=batch,
                 n_epochs=n_epochs, learning_rate=learning_rate, model_type=model_type, save=save)
 
 
-def generate_ranking(features_all, features_model, path, model_type='sklearn'):
+def generate_ranking(features_all, features_model, path, model_type='sklearn', normalize=True):
     # Merge data over multiple years
     print("Reading data...")
     dataset = get_data(features_all, path=path)
 
     df, x, y, feature_names = process_data(dataset=dataset,
-                                           features_model=features_model)
+                                           features_model=features_model,
+                                           normalize=normalize)
 
     # College score
     college_score = compute_college_scores(model_type, x, y)
@@ -83,18 +85,20 @@ def generate_ranking(features_all, features_model, path, model_type='sklearn'):
     print("Scores are saved in %s" % scores_file)
 
 
-def train_college_model(features_all, features_student, features_model, model_name, path, batch=16, n_epochs=300,
-                learning_rate=0.1, model_type='sklearn', save=False):
+def train_college_model(features_all, features_student, features_model, model_name, path, batch=100, n_epochs=1000,
+                learning_rate=0.000005, model_type='sklearn', save=False, normalize=True):
     # Merge data over multiple years
     print("Reading data...")
     dataset = get_data(features_all, path=path)
 
     df, x, y, feature_names = process_data(dataset=dataset,
-                                           features_model=features_student)
+                                           features_model=features_student,
+                                           normalize=normalize)
     y = compute_college_scores(model_type, x, y)
 
     df, x, _, feature_names = process_data(dataset=dataset,
-                                           features_model=features_model)
+                                           features_model=features_model,
+                                           normalize=normalize)
 
     train_model(x=x, y=y, model_name=model_name, feature_names=feature_names, batch=batch,
                 n_epochs=n_epochs, learning_rate=learning_rate, model_type=model_type, save=save)
@@ -103,7 +107,11 @@ def train_college_model(features_all, features_student, features_model, model_na
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', required=True, choices=['student', 'scores', 'college'])
+    parser.add_argument('--model_type', type=str, default='sklearn', choices=['sklearn', 'keras'])
     args = parser.parse_args()
+
+    model_type = args.model_type
+    normalize = True if model_type == 'sklearn' else False  # Don't normalize for Keras based models!
 
     # Features to compute earnings
     features_earnings = [Feature(name='MN_EARN_WNE_MALE1_P6'),
@@ -114,7 +122,8 @@ if __name__ == '__main__':
     # Features of students
     features_student = [Feature(name='SAT_AVG_ALL'),
                         Feature(name='SATVRMID'),
-                        Feature(name='SATMTMID')]
+                        Feature(name='SATMTMID')
+                        ]
 
     # Features of colleges, at this point we only need names
     features_college = [Feature(name='INSTNM', datatype='str', replace_with='')]
@@ -127,12 +136,15 @@ if __name__ == '__main__':
         # Train student model
         train_student_model(features_all, features_student,
                             model_name='student',
-                            model_type='sklearn',
+                            model_type=model_type,
+                            normalize=normalize,
                             path='/CollegeScorecard_Raw_Data/*.csv',
                             save=True)
     elif task == 'scores':
         # Generating scores with student model
-        generate_ranking(features_all, features_student, model_type='sklearn',
+        generate_ranking(features_all, features_student,
+                         model_type=model_type,
+                         normalize=normalize,
                          path='/CollegeScorecard_Raw_Data/*.csv')
     elif task == 'college':
         # Train college model
@@ -148,6 +160,7 @@ if __name__ == '__main__':
         features_all = features_earnings + features_student + features_college
         train_college_model(features_all, features_student, features_college,
                             model_name='college',
-                            model_type='sklearn',
+                            model_type=model_type,
+                            normalize=normalize,
                             path='/CollegeScorecard_Raw_Data/*.csv',
-                            save=False)
+                            save=True)

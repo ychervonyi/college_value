@@ -82,3 +82,8 @@ Train a college model:
 ```
 python models.py --task college
 ```
+
+P.S.: By default the code uses linear regression from `sklearn`, but one can specify `--model_type keras` to use `keras` 
+models, which are more flexible and can be easily generalized to different types of neural networks. 
+
+P.S.S.: Student `sklearn` and `keras` models are equivalent, but college `keras` model performs worse (TODO: resolve). 

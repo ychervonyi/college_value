@@ -81,8 +81,12 @@ class Model(object):
     def create(self):
         if self._type == 'keras':
             model = Sequential()
-            model.add(Dense(1, input_shape=(self._input_shape,), kernel_initializer='normal', activation="linear"))
-            model.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=self._params['learning_rate']))  # RMSprop(lr=0.05))
+            model.add(Dense(1, input_shape=(self._input_shape,),
+                            kernel_initializer='uniform',
+                            activation='linear',
+                            # kernel_regularizer='l2',
+                            use_bias=False))
+            model.compile(loss='mean_squared_error', optimizer=keras.optimizers.Adam(lr=self._params['learning_rate']))
             self._model = model
         elif self._type == 'sklearn':
             model = linear_model.Ridge()
@@ -93,11 +97,11 @@ class Model(object):
             json_file = open('%s.json' % self._model_name, 'r')
             loaded_model_json = json_file.read()
             json_file.close()
-            loaded_model = model_from_json(loaded_model_json)
+            self._model = model_from_json(loaded_model_json)
             # load weights into new model
-            loaded_model.load_weights("%s.h5" % self._model_name)
+            self._model.load_weights("%s.h5" % self._model_name)
             # need to compile, otherwise it returns nonsense (such as negative values)
-            loaded_model.compile(loss='mse', optimizer='adam')
+            self._model.compile(loss='mse', optimizer='adam')
             self._input_shape = self.get_n_coefs()
         elif self._type == 'sklearn':
             self._model = joblib.load('%s.pkl' % self._model_name)
